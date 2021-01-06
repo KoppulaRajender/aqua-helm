@@ -18,8 +18,10 @@ spec:
       {{- if and (.Values.gate.tolerations) (semverCompare "<1.6-0" .Capabilities.KubeVersion.GitVersion) }}
         scheduler.alpha.kubernetes.io/tolerations: '{{ toJson .Values.gate.tolerations }}'
       {{- end }}
+{{- if .Values.vaultSecret.enabled }}
 {{- with .Values.gate.annotations.vault }}
 {{ toYaml . | indent 8 }}
+{{- end }}
 {{- end }}
       labels:
         app: {{ .Release.Name }}-gateway
@@ -47,6 +49,8 @@ spec:
           value: "0.0.0.0:8082"
         - name: SCALOCK_DBUSER
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.user "postgres" }}
+
+        {{- if not .Values.vaultSecret.enabled }}
         {{- if .Values.db.passwordSecret }}
         - name: SCALOCK_DBPASSWORD
           valueFrom:
@@ -60,6 +64,8 @@ spec:
               name: {{ .Release.Name }}-database-password
               key: db-password
         {{- end }}
+        {{- end }}
+
         - name: SCALOCK_DBNAME
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.name "scalock" }}
         - name: SCALOCK_DBHOST
@@ -72,6 +78,8 @@ spec:
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.port "5432" | quote }}
         - name: SCALOCK_AUDIT_DBUSER
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.auditUser "postgres" }}
+
+        {{- if .Values.vaultSecret.enabled }}
           {{- if .Values.db.passwordSecret }}
         - name: SCALOCK_AUDIT_DBPASSWORD
           valueFrom:
@@ -89,6 +97,8 @@ spec:
               key: db-password
               {{- end }}
           {{- end }}
+        {{- end }}
+
         - name: SCALOCK_AUDIT_DBNAME
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.auditName "slk_audit" }}
         - name: SCALOCK_AUDIT_DBHOST

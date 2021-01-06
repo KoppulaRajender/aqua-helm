@@ -19,8 +19,10 @@ spec:
       {{- if and (.Values.web.tolerations) (semverCompare "<1.6-0" .Capabilities.KubeVersion.GitVersion) }}
         scheduler.alpha.kubernetes.io/tolerations: '{{ toJson .Values.web.tolerations }}'
       {{- end }}
+{{- if .Values.vaultSecret.enabled }}
 {{- with .Values.web.annotations.vault }}
 {{ toYaml . | indent 8 }}
+{{- end }}
 {{- end }}
       labels:
         app: {{ .Release.Name }}-console
@@ -42,6 +44,8 @@ spec:
           value: {{ .Values.web.logLevel | default "INFO" }}
         - name: SCALOCK_DBUSER
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.user "postgres" }}
+
+        {{- if not .Values.vaultSecret.enabled }}
         {{- if .Values.db.passwordSecret }}
         - name: SCALOCK_DBPASSWORD
           valueFrom:
@@ -55,6 +59,8 @@ spec:
               name: {{ .Release.Name }}-database-password
               key: db-password
         {{- end }}
+        {{- end}}
+
         - name: SCALOCK_DBNAME
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.name "scalock" }}
         {{- if .Values.db.external.enabled }}
@@ -68,6 +74,8 @@ spec:
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.port "5432" | quote }}
         - name: SCALOCK_AUDIT_DBUSER
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.auditUser "postgres" }}
+
+        {{- if not .Values.vaultSecret.enabled }}
           {{- if .Values.db.passwordSecret }}
         - name: SCALOCK_AUDIT_DBPASSWORD
           valueFrom:
@@ -85,6 +93,8 @@ spec:
               key: db-password
               {{- end }}
           {{- end }}
+        {{- end}}
+
         - name: SCALOCK_AUDIT_DBNAME
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.auditName "slk_audit" }}
         - name: SCALOCK_AUDIT_DBHOST
@@ -98,6 +108,8 @@ spec:
         {{- if .Values.activeactive }}
         - name: AQUA_PUBSUB_DBUSER
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.pubsubUser "postgres" }}
+
+        {{- if not .Values.vaultSecret.enabled }}  
           {{- if .Values.db.passwordSecret }}
         - name: AQUA_PUBSUB_DBPASSWORD
           valueFrom:
@@ -115,6 +127,8 @@ spec:
               key: db-password
               {{- end }}
           {{- end }}
+        {{- end}}
+
         - name: AQUA_PUBSUB_DBNAME
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.pubsubName "aqua_pubsub" }}
         - name: AQUA_PUBSUB_DBHOST
@@ -142,6 +156,8 @@ spec:
         - name: AQUA_CLUSTER_MODE
           value: "active-active"  
         {{- end }}
+
+        {{- if not .Values.vaultSecret.enabled }}
         {{- if .Values.admin.token }}
         - name: LICENSE_TOKEN
           valueFrom:
@@ -156,6 +172,8 @@ spec:
               name: {{ .Release.Name }}-console-secrets
               key: admin-password
         {{- end }}
+        {{- end }}
+
         {{- include "server.extraEnvironmentVars" .Values.web | nindent 8 }}
         {{- include "server.extraSecretEnvironmentVars" .Values.web | nindent 8 }}
         ports:

@@ -24,6 +24,9 @@ dockerSock:
   mount: # put true for mount docker socket.
   path: /var/run/docker.sock # pks - /var/vcap/data/sys/run/docker/docker.sock
 
+vaultSecret:
+  enabled: true   #enable this once you have secrets in vault and annotations are enabled
+
 db:  
   external:
     enabled: false
@@ -42,16 +45,17 @@ db:
     pubsubPort:
     pubsubUser:
     pubsubPassword:
+  #comment out the below annotations and args if you are not using separate vault for secrets
   annotations:
     vault:
       vault.hashicorp.com/agent-inject: "true"
       vault.hashicorp.com/agent-inject-status: update
       vault.hashicorp.com/role: "aqua-sa"                            # specify your role used by vault agent auto-auth
       vault.hashicorp.com/agent-inject-secret-db: secret/db  #specify your vault secrets path
-  #Add the secrets in Key Value pair as environment varibale/ below is the example for adding DBPASSWORD in environmental variable
+  #Add the secrets in Key Value pair as environment variable/ below is the example for adding DBPASSWORD in environmental variable
       vault.hashicorp.com/agent-inject-template-db: |        
         {{- with secret "secret/db" -}} 
-        export test_SCALOCK_DBPASSWORD="{{ .Data.data.dbpassword }}"
+        export POSTGRES_PASSWORD={{ .Data.data.aqua_db_password }}
         {{- end -}}
   args:
     - /bin/sh
@@ -108,11 +112,11 @@ db:
   affinity: {}
   securityContext: {}
 
-  # extraEnvironmentVars is a list of extra enviroment variables to set in the database deployments.
+  # extraEnvironmentVars is a list of extra environment variables to set in the database deployments.
   extraEnvironmentVars: {}
     # ENV_NAME: value
 
-  # extraSecretEnvironmentVars is a list of extra enviroment variables to set in the database deployments.
+  # extraSecretEnvironmentVars is a list of extra environment variables to set in the database deployments.
   # These variables take value from existing Secret objects.
   extraSecretEnvironmentVars: []
     # - envName: ENV_NAME
@@ -132,10 +136,11 @@ gate:
       vault.hashicorp.com/agent-inject-status: update
       vault.hashicorp.com/role: "aqua-sa"                            # specify your role used by vault agent auto-auth
       vault.hashicorp.com/agent-inject-secret-db: secret/db  #specify your vault secrets path
-  #Add the secrets in Key Value pair as environment varibale/ below is the example for adding DBPASSWORD in environmental variable
+  #Add the secrets in Key Value pair as environment variable/ below is the example for adding DBPASSWORD in environmental variable
       vault.hashicorp.com/agent-inject-template-db: |        
         {{- with secret "secret/db" -}} 
-        export test_SCALOCK_DBPASSWORD="{{ .Data.data.dbpassword }}"
+        export SCALOCK_DBPASSWORD={{ .Data.data.aqua_db_password }}
+        export SCALOCK_AUDIT_DBPASSWORD={{ .Data.data.aqua_audit_db_password }}
         {{- end -}}
   args:
     - /bin/sh
@@ -179,12 +184,12 @@ gate:
   #  runAsGroup: 11433
   #  fsGroup: 11433
 
-  # extraEnvironmentVars is a list of extra enviroment variables to set in the gateway deployments.
+  # extraEnvironmentVars is a list of extra environment variables to set in the gateway deployments.
   # https://docs.aquasec.com/docs/gateway-optional-variables
   extraEnvironmentVars: {}
     # ENV_NAME: value
 
-  # extraSecretEnvironmentVars is a list of extra enviroment variables to set in the gateway deployments.
+  # extraSecretEnvironmentVars is a list of extra environment variables to set in the gateway deployments.
   # These variables take value from existing Secret objects.
   extraSecretEnvironmentVars: []
     # - envName: ENV_NAME
@@ -204,10 +209,14 @@ web:
       vault.hashicorp.com/agent-inject-status: update
       vault.hashicorp.com/role: "aqua-sa"                            # specify your role used by vault agent auto-auth
       vault.hashicorp.com/agent-inject-secret-db: secret/db  #specify your vault secrets path
-  #Add the secrets in Key Value pair as environment varibale/ below is the example for adding DBPASSWORD in environmental variable
+  #Add the secrets in Key Value pair as environment variable/ below is the example for adding DBPASSWORD in environmental variable
       vault.hashicorp.com/agent-inject-template-db: |        
         {{- with secret "secret/db" -}} 
-        export test_SCALOCK_DBPASSWORD="{{ .Data.data.dbpassword }}"
+        export SCALOCK_DBPASSWORD={{ .Data.data.aqua_db_password }}
+        export SCALOCK_AUDIT_DBPASSWORD={{ .Data.data.aqua_audit_db_password }}
+        export AQUA_PUBSUB_DBPASSWORD={{ .Data.data.aqua_pubsub_db_password }}
+        export LICENSE_TOKEN={{ .Data.data.aqua_license_token }}
+        export ADMIN_PASSWORD={{ .Data.data.aqua_admin_password }}
         {{- end -}}
   args:
     - /bin/sh
@@ -270,12 +279,12 @@ web:
   #  runAsGroup: 11433
   #  fsGroup: 11433
 
-  # extraEnvironmentVars is a list of extra enviroment variables to set in the web deployments.
+  # extraEnvironmentVars is a list of extra environment variables to set in the web deployments.
   # https://docs.aquasec.com/docs/server-optional-variables
   extraEnvironmentVars: {}
     # ENV_NAME: value
 
-  # extraSecretEnvironmentVars is a list of extra enviroment variables to set in the web deployments.
+  # extraSecretEnvironmentVars is a list of extra environment variables to set in the web deployments.
   # These variables take value from existing Secret objects.
   extraSecretEnvironmentVars: []
     # - envName: ENV_NAME
