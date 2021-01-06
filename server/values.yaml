@@ -24,7 +24,7 @@ dockerSock:
   mount: # put true for mount docker socket.
   path: /var/run/docker.sock # pks - /var/vcap/data/sys/run/docker/docker.sock
 
-db:
+db:  
   external:
     enabled: false
     name:
@@ -42,6 +42,21 @@ db:
     pubsubPort:
     pubsubUser:
     pubsubPassword:
+  annotations:
+    vault:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/agent-inject-status: update
+      vault.hashicorp.com/role: "aqua-sa"                            # specify your role used by vault agent auto-auth
+      vault.hashicorp.com/agent-inject-secret-db: secret/db  #specify your vault secrets path
+  #Add the secrets in Key Value pair as environment varibale/ below is the example for adding DBPASSWORD in environmental variable
+      vault.hashicorp.com/agent-inject-template-db: |        
+        {{- with secret "secret/db" -}} 
+        export test_SCALOCK_DBPASSWORD="{{ .Data.data.dbpassword }}"
+        {{- end -}}
+  args:
+    - /bin/sh
+    - -c
+    - source /vault/secrets/db && docker-entrypoint.sh postgres    # change the /vault/secrets/<filename> as per the setup 
   passwordSecret:
   dbPasswordName:
   dbPasswordKey:
@@ -111,6 +126,21 @@ gate:
     repository: gateway
     tag: "5.3"
     pullPolicy: IfNotPresent
+  annotations:
+    vault:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/agent-inject-status: update
+      vault.hashicorp.com/role: "aqua-sa"                            # specify your role used by vault agent auto-auth
+      vault.hashicorp.com/agent-inject-secret-db: secret/db  #specify your vault secrets path
+  #Add the secrets in Key Value pair as environment varibale/ below is the example for adding DBPASSWORD in environmental variable
+      vault.hashicorp.com/agent-inject-template-db: |        
+        {{- with secret "secret/db" -}} 
+        export test_SCALOCK_DBPASSWORD="{{ .Data.data.dbpassword }}"
+        {{- end -}}
+  args:
+    - /bin/sh
+    - -c
+    - source /vault/secrets/db && /gateway-entrypoint.sh           # change the /vault/secrets/<filename> as per the setup
   service:
     type: ClusterIP
     annotations: {}
@@ -168,6 +198,21 @@ web:
     repository: console
     tag: "5.3"
     pullPolicy: IfNotPresent
+  annotations:
+    vault:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/agent-inject-status: update
+      vault.hashicorp.com/role: "aqua-sa"                            # specify your role used by vault agent auto-auth
+      vault.hashicorp.com/agent-inject-secret-db: secret/db  #specify your vault secrets path
+  #Add the secrets in Key Value pair as environment varibale/ below is the example for adding DBPASSWORD in environmental variable
+      vault.hashicorp.com/agent-inject-template-db: |        
+        {{- with secret "secret/db" -}} 
+        export test_SCALOCK_DBPASSWORD="{{ .Data.data.dbpassword }}"
+        {{- end -}}
+  args:
+    - /bin/sh
+    - -c
+    - source /vault/secrets/db && /web-entrypoint.sh              # change the /vault/secrets/<filename> as per the setup        
   service:
     type: LoadBalancer
     annotations: {}

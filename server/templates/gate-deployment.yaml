@@ -18,6 +18,9 @@ spec:
       {{- if and (.Values.gate.tolerations) (semverCompare "<1.6-0" .Capabilities.KubeVersion.GitVersion) }}
         scheduler.alpha.kubernetes.io/tolerations: '{{ toJson .Values.gate.tolerations }}'
       {{- end }}
+{{- with .Values.gate.annotations.vault }}
+{{ toYaml . | indent 8 }}
+{{- end }}
       labels:
         app: {{ .Release.Name }}-gateway
       name: {{ .Release.Name }}-gateway
@@ -29,6 +32,10 @@ spec:
           {{- toYaml .Values.gate.securityContext | nindent 12 }}
         image: "{{ .Values.imageCredentials.repositoryUriPrefix }}/{{ .Values.gate.image.repository }}:{{ .Values.gate.image.tag }}"
         imagePullPolicy: "{{ .Values.gate.image.pullPolicy }}"
+{{- with .Values.gate.args }}
+        args:
+{{ toYaml . | indent 8 }}
+{{- end }}
         env:
         - name: SCALOCK_LOG_LEVEL
           value: {{ .Values.gate.logLevel | default "INFO" }}
@@ -46,13 +53,13 @@ spec:
             secretKeyRef:
               name: {{ .Values.db.dbPasswordName }}
               key: {{ .Values.db.dbPasswordKey }}
-          {{- else }}
+        {{- else }}
         - name: SCALOCK_DBPASSWORD
           valueFrom:
             secretKeyRef:
               name: {{ .Release.Name }}-database-password
               key: db-password
-          {{- end }}
+        {{- end }}
         - name: SCALOCK_DBNAME
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.name "scalock" }}
         - name: SCALOCK_DBHOST
