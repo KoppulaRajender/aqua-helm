@@ -16,8 +16,30 @@ image:
 
 logLevel:
 
-user:
-password:
+
+vaultSecret:
+  enabled: true   #enable this once you have secrets in vault and annotations are enabled
+
+user: administrator
+password: password
+
+annotations:
+  vault.hashicorp.com/agent-inject: "true"
+  vault.hashicorp.com/agent-inject-status: update
+  vault.hashicorp.com/role: "aqua-sa"                            # specify your role used by vault agent auto-auth
+  vault.hashicorp.com/agent-inject-secret-db: secret/db  #specify your vault secrets path
+  #Add the secrets in Key Value pair as environment variable/ below is the example for adding DBPASSWORD in environmental variable
+  vault.hashicorp.com/agent-inject-template-db: |        
+    {{- with secret "secret/db" -}} 
+    export USER={{ .Data.data.aqua_user}}
+    export PASSWORD={{ .Data.data.aqua_password }}
+    {{- end -}}
+
+args:
+  - /bin/sh
+  - -c
+  - source /vault/secrets/db && /opt/aquasec/scannercli daemon      # change the /vault/secrets/<filename> as per the setup
+
 replicaCount: 1
 livenessProbe: {}
 readinessProbe: {}
@@ -37,12 +59,12 @@ securityContext: {}
 #  runAsGroup: 11433
 #  fsGroup: 11433
 
-# extraEnvironmentVars is a list of extra enviroment variables to set in the scanner deployments.
+# extraEnvironmentVars is a list of extra environment variables to set in the scanner deployments.
 # https://docs.aquasec.com/docs/scanner-optional-variables
 extraEnvironmentVars: {}
   # ENV_NAME: value
 
-# extraSecretEnvironmentVars is a list of extra enviroment variables to set in the scanner deployments.
+# extraSecretEnvironmentVars is a list of extra environment variables to set in the scanner deployments.
 # These variables take value from existing Secret objects.
 extraSecretEnvironmentVars: []
   # - envName: ENV_NAME
