@@ -25,7 +25,7 @@ dockerSock:
   path: /var/run/docker.sock # pks - /var/vcap/data/sys/run/docker/docker.sock
 
 vaultSecret:
-  enabled: true   #enable this once you have secrets in vault and annotations are enabled
+  enabled: false   #enable this once you have secrets in vault and annotations are enabled
 
 db:  
   external:
@@ -50,11 +50,11 @@ db:
     vault:
       vault.hashicorp.com/agent-inject: "true"
       vault.hashicorp.com/agent-inject-status: update
-      vault.hashicorp.com/role: "aqua-sa"                            # specify your role used by vault agent auto-auth
-      vault.hashicorp.com/agent-inject-secret-db: secret/db  #specify your vault secrets path
-  #Add the secrets in Key Value pair as environment variable/ below is the example for adding DBPASSWORD in environmental variable
-      vault.hashicorp.com/agent-inject-template-db: |        
-        {{- with secret "secret/db" -}} 
+      vault.hashicorp.com/role: "aqua"                            # specify your role used by vault agent auto-auth
+      vault.hashicorp.com/agent-inject-secret-aqua-secrets: aqua-v2/data/aqua-secrets  #specify your vault secrets path
+  #Add the secrets in Key Value pair as environment variable
+      vault.hashicorp.com/agent-inject-template-aqua-secrets: |        
+        {{- with secret "aqua-v2/data/aqua-secrets" -}} 
         export POSTGRES_PASSWORD={{ .Data.data.aqua_db_password }}
         {{- end -}}
   args:
@@ -134,11 +134,11 @@ gate:
     vault:
       vault.hashicorp.com/agent-inject: "true"
       vault.hashicorp.com/agent-inject-status: update
-      vault.hashicorp.com/role: "aqua-sa"                            # specify your role used by vault agent auto-auth
-      vault.hashicorp.com/agent-inject-secret-db: secret/db  #specify your vault secrets path
-  #Add the secrets in Key Value pair as environment variable/ below is the example for adding DBPASSWORD in environmental variable
-      vault.hashicorp.com/agent-inject-template-db: |        
-        {{- with secret "secret/db" -}} 
+      vault.hashicorp.com/role: "aqua"                            # specify your role used by vault agent auto-auth
+      vault.hashicorp.com/agent-inject-secret-aqua-secrets: aqua-v2/data/aqua-secrets  #specify your vault secrets path
+  #Add the secrets in Key Value pair as environment variable
+      vault.hashicorp.com/agent-inject-template-aqua-secrets: |        
+        {{- with secret "aqua-v2/data/aqua-secrets" -}} 
         export SCALOCK_DBPASSWORD={{ .Data.data.aqua_db_password }}
         export SCALOCK_AUDIT_DBPASSWORD={{ .Data.data.aqua_audit_db_password }}
         {{- end -}}
@@ -207,11 +207,11 @@ web:
     vault:
       vault.hashicorp.com/agent-inject: "true"
       vault.hashicorp.com/agent-inject-status: update
-      vault.hashicorp.com/role: "aqua-sa"                            # specify your role used by vault agent auto-auth
-      vault.hashicorp.com/agent-inject-secret-db: secret/db  #specify your vault secrets path
-  #Add the secrets in Key Value pair as environment variable/ below is the example for adding DBPASSWORD in environmental variable
-      vault.hashicorp.com/agent-inject-template-db: |        
-        {{- with secret "secret/db" -}} 
+      vault.hashicorp.com/role: "aqua"                            # specify your role used by vault agent auto-auth
+      vault.hashicorp.com/agent-inject-secret-aqua-secrets: aqua-v2/data/aqua-secrets  #specify your vault secrets path
+  #Add the secrets in Key Value pair as environment variable
+      vault.hashicorp.com/agent-inject-template-aqua-secrets: |        
+        {{- with secret "aqua-v2/data/aqua-secrets" -}} 
         export SCALOCK_DBPASSWORD={{ .Data.data.aqua_db_password }}
         export SCALOCK_AUDIT_DBPASSWORD={{ .Data.data.aqua_audit_db_password }}
         export AQUA_PUBSUB_DBPASSWORD={{ .Data.data.aqua_pubsub_db_password }}
