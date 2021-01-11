@@ -18,6 +18,11 @@ spec:
       {{- if and (.Values.gate.tolerations) (semverCompare "<1.6-0" .Capabilities.KubeVersion.GitVersion) }}
         scheduler.alpha.kubernetes.io/tolerations: '{{ toJson .Values.gate.tolerations }}'
       {{- end }}
+      {{- if .Values.vaultSecret.enabled }}
+      {{- with .Values.gate.annotations.vault }}
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- end }}
       labels:
         app: {{ .Release.Name }}-gateway
       name: {{ .Release.Name }}-gateway
@@ -29,6 +34,9 @@ spec:
           {{- toYaml .Values.gate.securityContext | nindent 12 }}
         image: "{{ .Values.imageCredentials.repositoryUriPrefix }}/{{ .Values.gate.image.repository }}:{{ .Values.gate.image.tag }}"
         imagePullPolicy: "{{ .Values.gate.image.pullPolicy }}"
+        {{- if .Values.vaultSecret.enabled }}
+        args: ["/bin/bash", "-c", "source {{ .Values.gate.vaultFilepath }} && /gateway-entrypoint.sh" ]
+        {{- end }}
         env:
         - name: SCALOCK_LOG_LEVEL
           value: {{ .Values.gate.logLevel | default "INFO" }}
@@ -40,6 +48,7 @@ spec:
           value: "0.0.0.0:8082"
         - name: SCALOCK_DBUSER
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.user "postgres" }}
+        {{- if not .Values.vaultSecret.enabled }}
         {{- if .Values.db.passwordSecret }}
         - name: SCALOCK_DBPASSWORD
           valueFrom:
@@ -53,6 +62,7 @@ spec:
               name: {{ .Release.Name }}-database-password
               key: db-password
           {{- end }}
+          {{- end }}
         - name: SCALOCK_DBNAME
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.name "scalock" }}
         - name: SCALOCK_DBHOST
@@ -65,6 +75,7 @@ spec:
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.port "5432" | quote }}
         - name: SCALOCK_AUDIT_DBUSER
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.auditUser "postgres" }}
+          {{- if not .Values.vaultSecret.enabled }}
           {{- if .Values.db.passwordSecret }}
         - name: SCALOCK_AUDIT_DBPASSWORD
           valueFrom:
@@ -81,6 +92,7 @@ spec:
               {{- else }}
               key: db-password
               {{- end }}
+          {{- end }}
           {{- end }}
         - name: SCALOCK_AUDIT_DBNAME
           value: {{ .Values.db.external.enabled | ternary .Values.db.external.auditName "slk_audit" }}

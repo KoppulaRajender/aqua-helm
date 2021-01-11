@@ -21,8 +21,8 @@ spec:
       {{- if .Values.vaultSecret.enabled }}
       {{- with .Values.gate.annotations.vault }}
 {{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- end }}
+      {{- end }}
+      {{- end }}
       labels:
         app: {{ .Release.Name }}-gateway
       name: {{ .Release.Name }}-gateway
@@ -35,10 +35,7 @@ spec:
         image: "{{ .Values.imageCredentials.repositoryUriPrefix }}/{{ .Values.gate.image.repository }}:{{ .Values.gate.image.tag }}"
         imagePullPolicy: "{{ .Values.gate.image.pullPolicy }}"
         {{- if .Values.vaultSecret.enabled }}
-        {{- with .Values.gate.args }}
-        args:
-{{ toYaml . | indent 8 }}
-        {{- end }}
+        args: ["/bin/bash", "-c", "source {{ .Values.gate.vaultFilepath }} && /gateway-entrypoint.sh" ]
         {{- end }}
         env:
         - name: SCALOCK_LOG_LEVEL

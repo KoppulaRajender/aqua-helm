@@ -25,7 +25,7 @@ dockerSock:
   path: /var/run/docker.sock # pks - /var/vcap/data/sys/run/docker/docker.sock
 
 vaultSecret:
-  enabled: false   #enable this once you have secrets in vault and annotations are enabled
+  enabled: true   #enable this once you have secrets in vault and annotations are enabled
 
 db:  
   external:
@@ -57,10 +57,8 @@ db:
         {{- with secret "aqua-v2/data/aqua-secrets" -}} 
         export POSTGRES_PASSWORD={{ .Data.data.aqua_db_password }}
         {{- end -}}
-  args:
-    - /bin/sh
-    - -c
-    - source /vault/secrets/db && docker-entrypoint.sh postgres    # change the /vault/secrets/<filename> as per the setup 
+  vaultFilepath:
+    /vault/secrets/aqua-secrets     # change the /vault/secrets/<filename> as per the setup 
   passwordSecret:
   dbPasswordName:
   dbPasswordKey:
@@ -142,10 +140,8 @@ gate:
         export SCALOCK_DBPASSWORD={{ .Data.data.aqua_db_password }}
         export SCALOCK_AUDIT_DBPASSWORD={{ .Data.data.aqua_audit_db_password }}
         {{- end -}}
-  args:
-    - /bin/sh
-    - -c
-    - source /vault/secrets/db && /gateway-entrypoint.sh           # change the /vault/secrets/<filename> as per the setup
+  vaultFilepath:
+    /vault/secrets/aqua-secrets         # change the /vault/secrets/<filename> as per the setup
   service:
     type: ClusterIP
     annotations: {}
@@ -218,10 +214,8 @@ web:
         export LICENSE_TOKEN={{ .Data.data.aqua_license_token }}
         export ADMIN_PASSWORD={{ .Data.data.aqua_admin_password }}
         {{- end -}}
-  args:
-    - /bin/sh
-    - -c
-    - source /vault/secrets/db && /web-entrypoint.sh              # change the /vault/secrets/<filename> as per the setup        
+  vaultFilepath:
+    /vault/secrets/aqua-secrets              # change the /vault/secrets/<filename> as per the setup        
   service:
     type: LoadBalancer
     annotations: {}

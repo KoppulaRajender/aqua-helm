@@ -40,7 +40,7 @@ spec:
           {{- toYaml .Values.securityContext | nindent 12 }}
         {{- if .Values.vaultSecret.enabled }}
         command: ["/bin/sh"]
-        args: ["-c", "source {{ .Values.vaultFilepath }} && ./autorun.sh "]
+        args: ["-c", "source {{ .Values.vaultFilepath }} && /autorun.sh "]
         {{- end }}
         env:
         - name: SCALOCK_LOG_LEVEL
