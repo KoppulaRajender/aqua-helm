@@ -62,6 +62,19 @@ gate:
         export SCALOCK_DBPASSWORD={{ .Data.data.aqua_db_password }}
         export SCALOCK_AUDIT_DBPASSWORD={{ .Data.data.aqua_audit_db_password }}
         {{- end -}}
+  #comment out below annotations if you'r not using ssl 
+      vault.hashicorp.com/agent-inject-secret-cert.pem: aqua-v2/data/aqua-secrets/cert.pem
+      vault.hashicorp.com/agent-inject-template-cert.pem: |
+        {{- with secret "aqua-v2/data/aqua-secrets/cert.pem" -}}
+        {{ .Data.data.cert }}
+        {{- end -}}
+      vault.hashicorp.com/secret-volume-path-cert.pem: /opt/aquasec/ssl
+      vault.hashicorp.com/agent-inject-secret-key.pem: aqua-v2/data/aqua-secrets/key.pem
+      vault.hashicorp.com/agent-inject-template-key.pem: |
+        {{- with secret "aqua-v2/data/aqua-secrets/key.pem" -}}
+        {{ .Data.data.key }}
+        {{- end -}}
+      vault.hashicorp.com/secret-volume-path-key.pem: /opt/aquasec/ssl
   vaultFilepath:
     /vault/secrets/aqua-secrets         # change the /vault/secrets/<filename> as per the setup
   logLevel:

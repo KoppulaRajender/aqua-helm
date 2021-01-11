@@ -25,7 +25,7 @@ dockerSock:
   path: /var/run/docker.sock # pks - /var/vcap/data/sys/run/docker/docker.sock
 
 vaultSecret:
-  enabled: true   #enable this once you have secrets in vault and annotations are enabled
+  enabled: false   #enable this once you have secrets in vault and annotations are enabled
 
 db:  
   external:
@@ -140,6 +140,19 @@ gate:
         export SCALOCK_DBPASSWORD={{ .Data.data.aqua_db_password }}
         export SCALOCK_AUDIT_DBPASSWORD={{ .Data.data.aqua_audit_db_password }}
         {{- end -}}
+  #comment out below annotations if you'r not using ssl 
+      vault.hashicorp.com/agent-inject-secret-cert.pem: aqua-v2/data/aqua-secrets/cert.pem
+      vault.hashicorp.com/agent-inject-template-cert.pem: |
+        {{- with secret "aqua-v2/data/aqua-secrets/cert.pem" -}}
+        {{ .Data.data.cert }}
+        {{- end -}}
+      vault.hashicorp.com/secret-volume-path-cert.pem: /opt/aquasec/ssl
+      vault.hashicorp.com/agent-inject-secret-key.pem: aqua-v2/data/aqua-secrets/key.pem
+      vault.hashicorp.com/agent-inject-template-key.pem: |
+        {{- with secret "aqua-v2/data/aqua-secrets/key.pem" -}}
+        {{ .Data.data.key }}
+        {{- end -}}
+      vault.hashicorp.com/secret-volume-path-key.pem: /opt/aquasec/ssl
   vaultFilepath:
     /vault/secrets/aqua-secrets         # change the /vault/secrets/<filename> as per the setup
   service:
@@ -214,6 +227,19 @@ web:
         export LICENSE_TOKEN={{ .Data.data.aqua_license_token }}
         export ADMIN_PASSWORD={{ .Data.data.aqua_admin_password }}
         {{- end -}}
+  #comment out below annotations if you'r not using ssl 
+      vault.hashicorp.com/agent-inject-secret-cert.pem: aqua-v2/data/aqua-secrets/cert.pem
+      vault.hashicorp.com/agent-inject-template-cert.pem: |
+        {{- with secret "aqua-v2/data/aqua-secrets/cert.pem" -}}
+        {{ .Data.data.cert }}
+        {{- end -}}
+      vault.hashicorp.com/secret-volume-path-cert.pem: /opt/aquasec/ssl
+      vault.hashicorp.com/agent-inject-secret-key.pem: aqua-v2/data/aqua-secrets/key.pem
+      vault.hashicorp.com/agent-inject-template-key.pem: |
+        {{- with secret "aqua-v2/data/aqua-secrets/key.pem" -}}
+        {{ .Data.data.key }}
+        {{- end -}}
+      vault.hashicorp.com/secret-volume-path-key.pem: /opt/aquasec/ssl
   vaultFilepath:
     /vault/secrets/aqua-secrets              # change the /vault/secrets/<filename> as per the setup        
   service:
@@ -288,7 +314,23 @@ web:
 envoy:
   enabled: false
   replicaCount: 1
-
+  annotations:
+    vault:
+      vault.hashicorp.com/agent-inject: "true"
+      vault.hashicorp.com/agent-inject-status: update
+      vault.hashicorp.com/role: aqua
+      vault.hashicorp.com/agent-inject-secret-tls.crt: aqua-v2/data/aqua-secrets/tls.crt
+      vault.hashicorp.com/agent-inject-template-tls.crt: |
+        {{- with secret "aqua-v2/data/aqua-secrets/tls.crt" -}}
+        {{ .Data.data.crt }}
+        {{- end -}} 
+      vault.hashicorp.com/secret-volume-path-tls.crt: /etc/ssl/envoy
+      vault.hashicorp.com/agent-inject-secret-tls.key: aqua-v2/data/aqua-secrets/tls.key
+      vault.hashicorp.com/agent-inject-template-tls.key: |
+        {{- with secret "aqua-v2/data/aqua-secrets/tls.key" -}}
+        {{ .Data.data.key }}
+        {{- end -}}
+      vault.hashicorp.com/secret-volume-path-tls.key: /etc/ssl/envoy 
   image:
     repository: envoyproxy/envoy-alpine
     tag: v1.15.0

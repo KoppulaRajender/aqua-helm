@@ -37,11 +37,10 @@ spec:
         imagePullPolicy: "{{ .Values.image.pullPolicy }}"
         {{- if .Values.vaultSecret.enabled }}
         command: ["/bin/sh"]
-        args: ["-c", "source {{ .Values.vaultFilepath }} && /opt/aquasec/scannercli daemon --direct-cc --host http://{{ .Values.server.serviceName }}:{{ .Values.server.port }} --user ${AQUA_SCANNER_USERNAME} --password ${AQUA_SCANNER_PASSWORD}"]
+        args: ["-c", "source {{ .Values.vaultFilepath }} && /opt/aquasec/scannercli daemon --host http://{{ .Values.server.serviceName }}:{{ .Values.server.port }} --user ${AQUA_SCANNER_USERNAME} --password ${AQUA_SCANNER_PASSWORD}"]
         {{- else }}
         args:
         - daemon
-        - --direct-cc 
         - --user
         - "{{ required "Please specify a username associated with the Scanner role!" .Values.user }}"
         - --password

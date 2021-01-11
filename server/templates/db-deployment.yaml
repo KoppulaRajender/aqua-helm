@@ -36,7 +36,7 @@ spec:
         image: "{{ .Values.imageCredentials.repositoryUriPrefix }}/{{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}"
         imagePullPolicy: "{{ .Values.db.image.pullPolicy }}"
         {{- if .Values.vaultSecret.enabled }}
-        args: ["/bin/bash", "-c", "source {{ .Values.db.vaultFilepath }} && /docker-entrypoint.sh postgres" ]
+        args: ["/bin/sh", "-c", "source {{ .Values.db.vaultFilepath }} && /docker-entrypoint.sh postgres" ]
         {{- end }}
         env:
         {{- if not .Values.vaultSecret.enabled }}  
@@ -129,7 +129,7 @@ spec:
         image: "{{ .Values.imageCredentials.repositoryUriPrefix }}/{{ .Values.db.image.repository }}:{{ .Values.db.image.tag }}"
         imagePullPolicy: "{{ .Values.db.image.pullPolicy }}"
         {{- if .Values.vaultSecret.enabled }}
-        args: ["/bin/bash", "-c", "source {{ .Values.db.vaultFilepath }} && /docker-entrypoint.sh postgres" ]
+        args: ["/bin/sh", "-c", "source {{ .Values.db.vaultFilepath }} && /docker-entrypoint.sh postgres" ]
         {{- end }}
         env:
         {{- if not .Values.vaultSecret.enabled }}
